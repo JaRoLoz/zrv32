@@ -16,4 +16,5 @@
 - lui
 - lb / lh / lw / lbu / lhu
 - sb / sh / sw
+
 This is more of a PoC than a real emulator.
