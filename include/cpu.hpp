@@ -69,14 +69,6 @@ public:
     void cycle();
     void load_memory(const uint8_t *source, size_t size, uint32_t start_address);
     void print_registers() const;
-    void add_hypercall(uint32_t address, std::function<void(CPU &)> func)
-    {
-        m_hypercalls[address] = func;
-    }
-    void remove_hypercall(uint32_t address)
-    {
-        m_hypercalls.erase(address);
-    }
 
     inline uint32_t get_reg(size_t index) { return m_registers[index]; }
     inline void set_reg(size_t index, uint32_t value)
@@ -92,19 +84,6 @@ public:
     template <typename T>
     T *memory_ptr(size_t address) { return reinterpret_cast<T *>(m_memory.data() + address); }
     size_t memory_size() const { return m_memory.size(); }
-
-private:
-    bool check_hypercall(uint32_t address)
-    {
-        if (!m_hypercalls.contains(address))
-        {
-            return false;
-        }
-
-        m_hypercalls[address](*this);
-        m_program_counter = m_registers[REG_X1];
-        return true;
-    }
 
 private:
     std::vector<uint8_t> m_memory;

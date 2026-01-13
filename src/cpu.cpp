@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 #include "isa.hpp"
+#include "hypercalls.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -34,7 +35,11 @@ CPU::CPU(const ProgramInfo &info)
 
 void CPU::cycle()
 {
-    if (!check_hypercall(m_program_counter))
+    if (Hypercalls::instance().check(m_program_counter))
+    {
+        Hypercalls::instance().call(m_program_counter, *this);
+    }
+    else
     {
         uint32_t inst = *memory_ptr<uint32_t>(m_program_counter);
         uint8_t opcode = inst & 0x7F;

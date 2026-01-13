@@ -14,7 +14,7 @@ _start:
     beqz a2, call_main
 
     li a1, 0
-    li t1, 0xFFFFFFF0       /* memset hypercall address */
+    li t1, 0x80000004       /* memset hypercall address */
 
     /* memset hypercall */
     jalr ra, t1, 0
@@ -23,6 +23,6 @@ call_main:
     call main
 
 exit_trap:
-    li t1, 0xFFFFFFF8       /* exit hypercall address */
+    li t1, 0x80000008       /* exit hypercall address */
     jalr ra, t1, 0
     j exit_trap
