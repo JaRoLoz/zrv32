@@ -35,22 +35,15 @@ CPU::CPU(const ProgramInfo &info)
 
 void CPU::cycle()
 {
-    if (Hypercalls::instance().check(m_program_counter))
-    {
-        Hypercalls::instance().call(m_program_counter, *this);
-    }
-    else
-    {
-        uint32_t inst = *memory_ptr<uint32_t>(m_program_counter);
-        uint8_t opcode = inst & 0x7F;
-        ISA::instance().get_instruction(opcode)(inst, *this);
+    uint32_t inst = *memory_ptr<uint32_t>(m_program_counter);
+    uint8_t opcode = inst & 0x7F;
+    ISA::instance().get_instruction(opcode)(inst, *this);
 
-        if (m_increment_pc)
-        {
-            m_program_counter += 4;
-        }
-        m_increment_pc = true;
+    if (m_increment_pc)
+    {
+        m_program_counter += 4;
     }
+    m_increment_pc = true;
 }
 
 void CPU::load_memory(const uint8_t *source, size_t size, uint32_t start_address)
