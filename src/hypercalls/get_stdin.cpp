@@ -21,4 +21,4 @@ static int32_t rv_get_stdin(CPU &cpu)
     return static_cast<uint32_t>(length);
 }
 
-HYPERCALL(0x80000014, rv_get_stdin)
+HYPERCALL(0x8000000C, rv_get_stdin)

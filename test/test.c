@@ -1,9 +1,14 @@
 #define PUTC_HYPERCALL_ADDR 0x80000000
 #define MEMSET_HYPERCALL_ADDR 0x80000004
 #define EXIT_HYPERCALL_ADDR 0x80000008
-#define MALLOC_HYPERCALL_ADDR 0x8000000C
-#define FREE_HYPERCALL_ADDR 0x80000010
-#define GET_STDIN_HYPERCALL_ADDR 0x80000014
+#define GET_STDIN_HYPERCALL_ADDR 0x8000000C
+#define INIT_WINDOW_HYPERCALL_ADDR 0x80000010
+#define CLOSE_WINDOW_HYPERCALL_ADDR 0x80000014
+#define SET_TARGET_FPS_HYPERCALL_ADDR 0x80000018
+#define DRAW_FRAME_HYPERCALL_ADDR 0x8000001C
+#define FRAMEBUFFER_ADDRESS 0x00040000
+
+volatile char (*const framebuffer)[256][4] = (volatile char (*)[256][4])FRAMEBUFFER_ADDRESS;
 
 int putc(char c)
 {
@@ -16,18 +21,6 @@ int get_stdin(char *buffer, unsigned long max_length)
 {
     int (*hypercall)(char *, unsigned long) = (int (*)(char *, unsigned long))GET_STDIN_HYPERCALL_ADDR;
     return hypercall(buffer, max_length);
-}
-
-void *malloc(unsigned long size)
-{
-    void *(*hypercall)(unsigned long) = (void *(*)(unsigned long))MALLOC_HYPERCALL_ADDR;
-    return hypercall(size);
-}
-
-void free(void *ptr)
-{
-    void (*hypercall)(void *) = (void (*)(void *))FREE_HYPERCALL_ADDR;
-    hypercall(ptr);
 }
 
 unsigned long strlen(const char *str)
@@ -51,15 +44,39 @@ void print(const char *str)
     }
 }
 
-int memset(void *dest, int value, unsigned long length)
+int memset(void *dest, unsigned char value, unsigned long length)
 {
-    int (*hypercall)(void *, int, unsigned long) = (int (*)(void *, int, unsigned long))MEMSET_HYPERCALL_ADDR;
+    int (*hypercall)(void *, unsigned char, unsigned long) = (int (*)(void *, unsigned char, unsigned long))MEMSET_HYPERCALL_ADDR;
     return hypercall(dest, value, length);
 }
 
 void exit()
 {
     void (*hypercall)() = (void (*)())EXIT_HYPERCALL_ADDR;
+    hypercall();
+}
+
+void init_window()
+{
+    void (*hypercall)() = (void (*)())INIT_WINDOW_HYPERCALL_ADDR;
+    hypercall();
+}
+
+void close_window()
+{
+    void (*hypercall)() = (void (*)())CLOSE_WINDOW_HYPERCALL_ADDR;
+    hypercall();
+}
+
+void set_target_fps(int fps)
+{
+    void (*hypercall)(int) = (void (*)(int))SET_TARGET_FPS_HYPERCALL_ADDR;
+    hypercall(fps);
+}
+
+void draw_frame()
+{
+    void (*hypercall)() = (void (*)())DRAW_FRAME_HYPERCALL_ADDR;
     hypercall();
 }
 
@@ -72,6 +89,32 @@ int main()
     print("Hello, ");
     print(name);
     putc('\n');
+
+    init_window();
+    set_target_fps(120);
+
+    while (1)
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            memset((void *)framebuffer, 0, 256 * 256 * 4);
+            framebuffer[128][i][0] = 0x00;
+            framebuffer[128][i][1] = 0xFF;
+            framebuffer[128][i][2] = 0x00;
+            framebuffer[128][i][3] = 0xFF;
+            draw_frame();
+        }
+
+        for (int i = 255; i >= 0; i--)
+        {
+            memset((void *)framebuffer, 0, 256 * 256 * 4);
+            framebuffer[128][i][0] = 0xFF;
+            framebuffer[128][i][1] = 0x00;
+            framebuffer[128][i][2] = 0x00;
+            framebuffer[128][i][3] = 0xFF;
+            draw_frame();
+        }
+    }
 
     return 0;
 }

@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/build/vcpkg_installed/x64-windows-static/include"
             ],
             "defines": [
                 "_DEBUG",
