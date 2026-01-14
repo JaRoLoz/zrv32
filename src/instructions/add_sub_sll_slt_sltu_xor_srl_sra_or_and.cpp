@@ -1,6 +1,7 @@
 #include "macros.hpp"
 
 #include <array>
+#include "instructions/m_extension.hpp"
 
 void add(uint32_t inst, CPU &cpu)
 {
@@ -110,10 +111,21 @@ void and_op(uint32_t inst, CPU &cpu)
 
 static void instruction(uint32_t inst, CPU &cpu)
 {
-    static const std::array<Instruction::instruction_execute_t, 8> ops = {
-        dispatch_add_sub, sll, slt, sltu, xor_op, dispatch_srl_sra, or_op, and_op};
-    size_t discriminator = (inst >> 12) & 0x7;
-    ops[discriminator](inst, cpu);
+    size_t funct3 = (inst >> 12) & 0x7;
+    size_t funct7 = (inst >> 25) & 0x7F;
+
+    if (funct7 == M_EXTENSION_FUNC7)
+    {
+        static const std::array<Instruction::instruction_execute_t, 8> m_ops = {
+            mul, mulh, mulhsu, mulhu, div_op, divu, rem, remu};
+        m_ops[funct3](inst, cpu);
+    }
+    else
+    {
+        static const std::array<Instruction::instruction_execute_t, 8> ops = {
+            dispatch_add_sub, sll, slt, sltu, xor_op, dispatch_srl_sra, or_op, and_op};
+        ops[funct3](inst, cpu);
+    }
 }
 
 INSTRUCTION(0b0110011, instruction);

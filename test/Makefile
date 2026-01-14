@@ -8,7 +8,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 TARGET  = test
 
 
-ARCH_FLAGS = -march=rv32i -mabi=ilp32
+ARCH_FLAGS = -march=rv32im -mabi=ilp32
 CFLAGS  = $(ARCH_FLAGS) -c -O0 -Wall -Wextra -ffreestanding
 ASFLAGS = $(ARCH_FLAGS)
 LDFLAGS = -m elf32lriscv -T linker.ld --no-relax
