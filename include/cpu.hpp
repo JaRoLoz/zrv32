@@ -59,6 +59,42 @@ public:
         REG_X31 = 31
     };
 
+    enum FRegisters
+    {
+        REG_F0 = 0,
+        REG_F1 = 1,
+        REG_F2 = 2,
+        REG_F3 = 3,
+        REG_F4 = 4,
+        REG_F5 = 5,
+        REG_F6 = 6,
+        REG_F7 = 7,
+        REG_F8 = 8,
+        REG_F9 = 9,
+        REG_F10 = 10,
+        REG_F11 = 11,
+        REG_F12 = 12,
+        REG_F13 = 13,
+        REG_F14 = 14,
+        REG_F15 = 15,
+        REG_F16 = 16,
+        REG_F17 = 17,
+        REG_F18 = 18,
+        REG_F19 = 19,
+        REG_F20 = 20,
+        REG_F21 = 21,
+        REG_F22 = 22,
+        REG_F23 = 23,
+        REG_F24 = 24,
+        REG_F25 = 25,
+        REG_F26 = 26,
+        REG_F27 = 27,
+        REG_F28 = 28,
+        REG_F29 = 29,
+        REG_F30 = 30,
+        REG_F31 = 31
+    };
+
 public:
     CPU(size_t memory_size)
     {
@@ -77,6 +113,11 @@ public:
             return;
         m_registers[index] = value;
     }
+    inline float get_freg(size_t index) { return m_fregisters[index]; }
+    inline void set_freg(size_t index, float value)
+    {
+        m_fregisters[index] = value;
+    }
 
     inline uint32_t &program_counter() { return m_program_counter; }
     inline void skip_pc_increment() { m_increment_pc = false; }
@@ -88,6 +129,7 @@ public:
 private:
     std::vector<uint8_t> m_memory;
     std::array<uint32_t, 32> m_registers{};
+    std::array<float, 32> m_fregisters{};
     uint32_t m_program_counter = 0;
     bool m_increment_pc = true;
     std::unordered_map<uint32_t, std::function<void(CPU &)>> m_hypercalls;
