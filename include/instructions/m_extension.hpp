@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "cpu.hpp"
 
-constexpr const uint32_t M_EXTENSION_FUNC7 = 0x01;
+constexpr const uint32_t M_EXTENSION_FUNCT7 = 0x01;
 
 void mul(uint32_t inst, CPU &cpu);
 void mulh(uint32_t inst, CPU &cpu);

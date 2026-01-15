@@ -114,7 +114,7 @@ static void instruction(uint32_t inst, CPU &cpu)
     size_t funct3 = (inst >> 12) & 0x7;
     size_t funct7 = (inst >> 25) & 0x7F;
 
-    if (funct7 == M_EXTENSION_FUNC7)
+    if (funct7 == M_EXTENSION_FUNCT7)
     {
         static const std::array<Instruction::instruction_execute_t, 8> m_ops = {
             mul, mulh, mulhsu, mulhu, div_op, divu, rem, remu};
