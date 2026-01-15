@@ -64,6 +64,7 @@ int32_t rv_draw_frame(CPU &cpu)
         0.0f,
         WHITE);
 
+    DrawFPS(10, 10);
     EndDrawing();
     return 0;
 }

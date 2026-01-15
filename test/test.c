@@ -8,7 +8,7 @@
 #define DRAW_FRAME_HYPERCALL_ADDR 0x8000001C
 #define FRAMEBUFFER_ADDRESS 0x00040000
 
-volatile char (*const framebuffer)[256][4] = (volatile char (*)[256][4])FRAMEBUFFER_ADDRESS;
+volatile unsigned int *framebuffer = (volatile unsigned int *)FRAMEBUFFER_ADDRESS;
 
 int putc(char c)
 {
@@ -91,29 +91,34 @@ int main()
     putc('\n');
 
     init_window();
-    set_target_fps(120);
+    float blue_level = 0.0f;
+    float direction = 0.01f;
 
     while (1)
     {
-        for (int i = 0; i < 256; i++)
+        blue_level += direction;
+        if (blue_level > 1.0f || blue_level < 0.0f)
         {
-            memset((void *)framebuffer, 0, 256 * 256 * 4);
-            framebuffer[128][i][0] = 0x00;
-            framebuffer[128][i][1] = 0xFF;
-            framebuffer[128][i][2] = 0x00;
-            framebuffer[128][i][3] = 0xFF;
-            draw_frame();
+            direction = -direction;
         }
 
-        for (int i = 255; i >= 0; i--)
+        for (int i = 0; i < 256 * 256; i++)
         {
-            memset((void *)framebuffer, 0, 256 * 256 * 4);
-            framebuffer[128][i][0] = 0xFF;
-            framebuffer[128][i][1] = 0x00;
-            framebuffer[128][i][2] = 0x00;
-            framebuffer[128][i][3] = 0xFF;
-            draw_frame();
+            int x = i & 0xFF;
+            int y = i >> 8;
+
+            float r_float = (float)x / 255.0f;
+            float g_float = (float)y / 255.0f;
+            float b_float = blue_level;
+
+            unsigned int r = (unsigned int)(r_float * 255.0f);
+            unsigned int g = (unsigned int)(g_float * 255.0f);
+            unsigned int b = (unsigned int)(b_float * 255.0f);
+
+            framebuffer[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
         }
+
+        draw_frame();
     }
 
     return 0;
