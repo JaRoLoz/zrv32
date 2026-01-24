@@ -8,6 +8,9 @@
 #include <array>
 #include <string>
 #include <functional>
+#include <span>
+#include <stdexcept>
+#include <format>
 
 #include "pow.hpp"
 
@@ -95,6 +98,63 @@ public:
         REG_F31 = 31
     };
 
+    class Exception : public std::runtime_error
+    {
+    public:
+        Exception(
+            const std::string &message,
+            uint32_t program_counter,
+            std::span<const uint32_t> registers,
+            std::span<const float> fregisters)
+            : std::runtime_error{message},
+              m_program_counter{program_counter}
+        {
+            std::copy(registers.begin(), registers.end(), m_registers.begin());
+            std::copy(fregisters.begin(), fregisters.end(), m_fregisters.begin());
+        }
+
+    private:
+        uint32_t m_program_counter;
+        std::array<uint32_t, 32> m_registers;
+        std::array<float, 32> m_fregisters;
+    };
+
+    class MemoryAccessException : public Exception
+    {
+    public:
+        MemoryAccessException(
+            size_t address,
+            uint32_t program_counter,
+            std::span<const uint32_t> registers,
+            std::span<const float> fregisters)
+            : Exception{std::format("Memory access violation at address 0x{:08X}", address), program_counter, registers, fregisters}
+        {
+            // too expensive to use right now, will be used when memory bounds checking is implemented through page tables
+        }
+    };
+
+    class IllegalInstructionException : public Exception
+    {
+        friend class CPU;
+
+    public:
+        IllegalInstructionException(
+            uint32_t instruction,
+            uint32_t program_counter,
+            std::span<const uint32_t> registers,
+            std::span<const float> fregisters)
+            : Exception{std::format("Illegal instruction: 0x{:08X}", instruction), program_counter, registers, fregisters}
+        {
+        }
+
+        IllegalInstructionException(
+            uint32_t instruction,
+            const CPU &cpu)
+            : Exception{std::format("Illegal instruction: 0x{:08X}", instruction), cpu.m_program_counter, cpu.m_registers, cpu.m_fregisters}
+        {
+        }
+    };
+
 public:
     CPU(size_t memory_size)
     {
@@ -106,24 +166,27 @@ public:
     void load_memory(const uint8_t *source, size_t size, uint32_t start_address);
     void print_registers() const;
 
-    inline uint32_t get_reg(size_t index) { return m_registers[index]; }
+    inline uint32_t get_reg(size_t index) { return m_registers[index & 0x1F]; }
     inline void set_reg(size_t index, uint32_t value)
     {
         if (index == REG_X0)
             return;
-        m_registers[index] = value;
+        m_registers[index & 0x1F] = value;
     }
-    inline float get_freg(size_t index) { return m_fregisters[index]; }
+    inline float get_freg(size_t index) { return m_fregisters[index & 0x1F]; }
     inline void set_freg(size_t index, float value)
     {
-        m_fregisters[index] = value;
+        m_fregisters[index & 0x1F] = value;
     }
 
     inline uint32_t &program_counter() { return m_program_counter; }
     inline void skip_pc_increment() { m_increment_pc = false; }
 
     template <typename T>
-    T *memory_ptr(size_t address) { return reinterpret_cast<T *>(m_memory.data() + address); }
+    T *memory_ptr(size_t address)
+    {
+        return reinterpret_cast<T *>(m_memory.data() + address);
+    }
     size_t memory_size() const { return m_memory.size(); }
 
 private:

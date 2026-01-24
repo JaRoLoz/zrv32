@@ -10,15 +10,17 @@ public:
     using instruction_execute_t = std::function<void(uint32_t, CPU &)>;
 
 public:
-    Instruction() : m_opcode{NOP_OPCODE}, m_execute{NOP_execute} {}
+    Instruction() : m_opcode{0}, m_execute{invalid_execute} {}
     Instruction(uint8_t opcode, instruction_execute_t execute)
         : m_opcode{opcode}, m_execute{execute} {}
 
     inline void operator()(uint32_t inst, CPU &cpu) const { m_execute(inst, cpu); }
 
 private:
-    static constexpr uint8_t NOP_OPCODE = 0b01100100; // addi opcode
-    static void NOP_execute(uint32_t, CPU &) {}
+    static void invalid_execute(uint32_t inst, CPU &cpu)
+    {
+        throw CPU::IllegalInstructionException{inst, cpu};
+    }
 
 private:
     uint8_t m_opcode;
